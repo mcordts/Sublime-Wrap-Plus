@@ -209,7 +209,8 @@ numbered_list = r'(?:(?:[0-9#]+[.)])+[\t ])'
 lettered_list = r'(?:[\w][.)][\t ])'
 bullet_list = r'(?:[*+#-]+[\t ])'
 list_pattern = re.compile(r'^[ \t]*' + OR(numbered_list, lettered_list, bullet_list) + r'[ \t]*')
-latex_hack = r'(:?\\)'
+latex_hack_begin = r'(:?\\begin)'
+latex_hack_end = r'(:?\\end)'
 rest_directive = r'(:?\.\.)'
 field_start = r'(?:[:@])'  # rest, javadoc, jsdoc, etc.
 new_paragraph_pattern = re.compile(r'^[\t ]*' +
@@ -224,7 +225,7 @@ sep_chars = '!@#$%^&*=+`~\'\":;.,?_-'
 sep_line = '[' + sep_chars + r']+[ \t'+sep_chars+']*'
 
 # Break pattern is a little ambiguous.  Something like "# Header" could also be a list element.
-break_pattern = re.compile(r'^[\t ]*' + OR(sep_line, OR(latex_hack, rest_directive) + '.*') + '$')
+break_pattern = re.compile(r'^[\t ]*' + OR(sep_line, OR(OR(latex_hack_begin,latex_hack_end), rest_directive) + '.*') + '$')
 pure_break_pattern = re.compile(r'^[\t ]*' + sep_line + '$')
 
 email_quote = r'[\t ]*>[> \t]*'
@@ -688,7 +689,7 @@ class WrapLinesPlusCommand(sublime_plugin.TextCommand):
         s = self.view.sel()
         end = s[len(s)-1].end()
         line = self.view.line(end)
-        end = min(self.view.size(), line.end()+1)
+        end = min(self.view.size(), line.end())
         self.view.sel().clear()
         r = sublime.Region(end)
         self.view.sel().add(r)
